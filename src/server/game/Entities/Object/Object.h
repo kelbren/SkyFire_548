@@ -208,8 +208,8 @@ class Object
         virtual void BuildUpdate(UpdateDataMapType&) { }
         void BuildFieldsUpdate(Player*, UpdateDataMapType &) const;
 
-        void SetFieldNotifyFlag(uint16 flag) { _fieldNotifyFlags |= flag; }
-        void RemoveFieldNotifyFlag(uint16 flag) { _fieldNotifyFlags &= ~flag; }
+        void SetFieldNotifyFlag(uint16 flag) { m_fieldNotifyFlags |= flag; }
+        void RemoveFieldNotifyFlag(uint16 flag) { m_fieldNotifyFlags &= ~flag; }
 
         // FG: some hacky helpers
         void ForceValuesUpdateAtIndex(uint32);
@@ -268,7 +268,7 @@ class Object
 
         uint16 m_valuesCount;
 
-        uint16 _fieldNotifyFlags;
+        uint16 m_fieldNotifyFlags;
 
         bool m_objectUpdated;
 
@@ -585,7 +585,7 @@ class WorldObject : public Object, public WorldLocation
     public:
         virtual ~WorldObject();
 
-        virtual void Update (uint32 /*time_diff*/) { }
+        virtual void Update(uint32 /*time_diff*/) { }
 
         void _Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask);
         virtual void RemoveFromWorld();
@@ -682,7 +682,7 @@ class WorldObject : public Object, public WorldLocation
         void MonsterTextEmote(int32 textId, WorldObject const* target, bool IsBossEmote = false);
         void MonsterWhisper(int32 textId, Player const* target, bool IsBossWhisper = false);
 
-        void PlayDistanceSound(uint32 sound_id, Player* target = NULL);
+        void PlayDistanceSound(uint32 sound_id, Player* target);
         void PlayDirectSound(uint32 sound_id, Player* target = NULL);
 
         void SendObjectDeSpawnAnim(uint64 guid);

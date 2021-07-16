@@ -579,7 +579,7 @@ enum class WeaponAttackType
     MAX_ATTACK = 3
 };
 
-enum CombatRating
+enum class CombatRating
 {
     CR_WEAPON_SKILL = 0,
     CR_DEFENSE_SKILL = 1, // Removed in 4.0.1
@@ -1383,7 +1383,10 @@ enum PlayerTotemType
     SUMMON_TYPE_TOTEM_FIRE = 63,
     SUMMON_TYPE_TOTEM_EARTH = 81,
     SUMMON_TYPE_TOTEM_WATER = 82,
-    SUMMON_TYPE_TOTEM_AIR = 83
+    SUMMON_TYPE_TOTEM_AIR = 83,
+
+    SUMMON_TYPE_STATUE_JADE = 3216,
+    SUMMON_TYPE_STATUE_OX = 3223
 };
 
 // delay time next attack to prevent client attack animation problems
@@ -1447,7 +1450,7 @@ class Unit : public WorldObject
     float GetSpellMaxRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const;
     float GetSpellMinRangeForTarget(Unit const* target, SpellInfo const* spellInfo) const;
 
-    virtual void Update(uint32 time) override;
+    void Update(uint32 time) OVERRIDE;
 
     void setAttackTimer(WeaponAttackType type, uint32 time)
     {
@@ -1811,11 +1814,11 @@ class Unit : public WorldObject
     // player or player's pet resilience (-1%)
     uint32 GetCritDamageReduction(uint32 damage) const
     {
-        return GetCombatRatingDamageReduction(CR_RESILIENCE_CRIT_TAKEN, 2.2f, 33.0f, damage);
+        return GetCombatRatingDamageReduction(CombatRating::CR_RESILIENCE_CRIT_TAKEN, 2.2f, 33.0f, damage);
     }
     uint32 GetDamageReduction(uint32 damage) const
     {
-        return GetCombatRatingDamageReduction(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 2.0f, 100.0f, damage);
+        return GetCombatRatingDamageReduction(CombatRating::CR_RESILIENCE_PLAYER_DAMAGE_TAKEN, 2.0f, 100.0f, damage);
     }
 
     void ApplyResilience(Unit const* victim, int32 * damage, bool isCrit) const;

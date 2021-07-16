@@ -26,7 +26,7 @@ void AddSC_generic_spell_scripts();
 void AddSC_hunter_spell_scripts();
 void AddSC_mage_spell_scripts();
 void AddSC_masteries_spell_scripts();
-//void AddSC_monk_spell_scripts();
+void AddSC_monk_spell_scripts();
 void AddSC_paladin_spell_scripts();
 void AddSC_priest_spell_scripts();
 void AddSC_rogue_spell_scripts();
@@ -615,6 +615,10 @@ void AddSC_event_childrens_week();
 // Pandaria
 // Temple of Jade Serpent
 void AddSC_instance_jade_serpent();
+// Stormstout Brewery
+void AddSC_boss_ook_ook();
+void AddSC_instance_stormstout_brewery();
+void AddSC_stormstout_brewery();
 
 // Pets
 void AddSC_deathknight_pet_scripts();
@@ -666,8 +670,8 @@ void AddSpellScripts()
     AddSC_generic_spell_scripts();
     AddSC_hunter_spell_scripts();
     AddSC_mage_spell_scripts();
-	AddSC_masteries_spell_scripts();
-	//AddSC_monk_spell_scripts();
+    AddSC_masteries_spell_scripts();
+    AddSC_monk_spell_scripts();
     AddSC_paladin_spell_scripts();
     AddSC_priest_spell_scripts();
     AddSC_rogue_spell_scripts();
@@ -1289,6 +1293,10 @@ void AddPandariaScripts()
 #ifdef SCRIPTS
     // Temple of Jade Serpent - Temple of Jade Serpent
     AddSC_instance_jade_serpent();
+    // Stormstout Brewery
+    AddSC_boss_ook_ook();
+    AddSC_instance_stormstout_brewery();
+    AddSC_stormstout_brewery();
 #endif
 }
 

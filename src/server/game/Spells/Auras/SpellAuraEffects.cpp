@@ -468,7 +468,7 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleOverrideAttackPowerBySpellPower,           //404 SPELL_AURA_OVERRIDE_AP_BY_SPELL_POWER_PCT (used in spell 115070) (5.4.2)
     &AuraEffect::HandleNULL,                                      //405 SPELL_AURA_405
     &AuraEffect::HandleNULL,                                      //406 SPELL_AURA_406
-    &AuraEffect::HandleNULL,                                      //407 SPELL_AURA_407
+    &AuraEffect::HandleModFear,                                   //407 SPELL_MOD_FEAR_2
     &AuraEffect::HandleNULL,                                      //408 SPELL_AURA_408
     &AuraEffect::HandleNULL,                                      //409 SPELL_AURA_409
     &AuraEffect::HandleNULL,                                      //410 SPELL_AURA_410 (used in spell 57902) (5.4.2)
@@ -586,6 +586,7 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
         // crowd control auras
         case SPELL_AURA_MOD_CONFUSE:
         case SPELL_AURA_MOD_FEAR:
+        case SPELL_AURA_MOD_FEAR_2:
         case SPELL_AURA_MOD_STUN:
         case SPELL_AURA_MOD_ROOT:
         case SPELL_AURA_TRANSFORM:
@@ -708,7 +709,7 @@ void AuraEffect::CalculateSpellMod()
                 m_spellmod->mask = GetSpellInfo()->Effects[GetEffIndex()].SpellClassMask;
                 m_spellmod->charges = GetBase()->GetCharges();
             }
-            m_spellmod->value = GetAmount();
+            m_spellmod->value = (float)GetAmount();
             break;
         default:
             break;
@@ -1237,9 +1238,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
         case FORM_SHADOW:
             spellId = 49868;
             break;
+        case FORM_STEALTH:
+            if (target->HasAura(108209)) // Shadow Focus Dummy Talent
+                spellId = 112942; // Shadow Focus Aura.
+            break;
         case FORM_GHOUL:
         case FORM_AMBIENT:
-        case FORM_STEALTH:
         case FORM_CREATURECAT:
         case FORM_CREATUREBEAR:
             break;
@@ -2798,7 +2802,7 @@ void AuraEffect::HandlePreventFleeing(AuraApplication const* aurApp, uint8 mode,
 
     Unit* target = aurApp->GetTarget();
 
-    if (target->HasAuraType(SPELL_AURA_MOD_FEAR))
+    if (target->HasAuraType(SPELL_AURA_MOD_FEAR) || target->HasAuraType(SPELL_AURA_MOD_FEAR_2))
         target->SetControlled(!(apply), UNIT_STATE_FLEEING);
 }
 
@@ -3094,6 +3098,7 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
             }
             break;
         }
@@ -3125,6 +3130,7 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
             }
             break;
         }
@@ -3162,6 +3168,7 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
             }
             break;
         }
@@ -3205,6 +3212,7 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
             }
             break;
         }
@@ -3239,6 +3247,7 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
             }
             break;
         }
@@ -3276,8 +3285,11 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const* aurApp, uint8
                 aura_immunity_list.push_back(SPELL_AURA_MOD_ROOT);
             if (miscVal & (1<<2))
                 aura_immunity_list.push_back(SPELL_AURA_MOD_CONFUSE);
-            if (miscVal & (1<<9))
+            if (miscVal & (1 << 9))
+            {
                 aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR);
+                aura_immunity_list.push_back(SPELL_AURA_MOD_FEAR_2);
+            }
             if (miscVal & (1<<7))
                 aura_immunity_list.push_back(SPELL_AURA_MOD_DISARM);
     }
@@ -4485,7 +4497,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                         target->CastSpell(target, 51581, true, NULL, this);
                     break;
                 case 43873:                                     // Headless Horseman Laugh
-                    target->PlayDistanceSound(11965);
+                    target->PlayDistanceSound(11965, target->ToPlayer());
                     break;
                 case 46354:                                     // Blood Elf Illusion
                     if (caster)
@@ -5903,9 +5915,7 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
     // damage caster for heal amount
     if (target != caster && GetSpellInfo()->AttributesEx2 & SPELL_ATTR2_HEALTH_FUNNEL && GetSpellInfo()->Id != 755)
     {
-        uint32 funnelDamage = GetSpellInfo()->ManaPerSecond; // damage is not affected by spell power
-        if ((int32)funnelDamage > gain)
-            funnelDamage = gain;
+        uint32 funnelDamage = gain;
         uint32 funnelAbsorb = 0;
         caster->DealDamageMods(caster, funnelDamage, &funnelAbsorb);
         caster->SendSpellNonMeleeDamageLog(caster, GetId(), funnelDamage, GetSpellInfo()->GetSchoolMask(), funnelAbsorb, 0, false, 0, false);
@@ -5941,17 +5951,6 @@ void AuraEffect::HandlePeriodicManaLeechAuraTick(Unit* target, Unit* caster) con
 
     // ignore negative values (can be result apply spellmods to aura damage
     int32 drainAmount = std::max(m_amount, 0);
-
-    // Special case: draining x% of mana (up to a maximum of 2*x% of the caster's maximum mana)
-    // It's mana percent cost spells, m_amount is percent drain from target
-    if (m_spellInfo->ManaCostPercentage)
-    {
-        // max value
-        int32 maxmana = CalculatePct(caster->GetMaxPower(powerType), drainAmount * 2.0f);
-        ApplyPct(drainAmount, target->GetMaxPower(powerType));
-        if (drainAmount > maxmana)
-            drainAmount = maxmana;
-    }
 
     SF_LOG_INFO("spells", "PeriodicTick: %u (TypeId: %u) power leech of %u (TypeId: %u) for %u dmg inflicted by %u",
         GUID_LOPART(GetCasterGUID()), uint8(GuidHigh2TypeId(GUID_HIPART(GetCasterGUID()))), target->GetGUIDLow(), uint8(target->GetTypeId()), drainAmount, GetId());

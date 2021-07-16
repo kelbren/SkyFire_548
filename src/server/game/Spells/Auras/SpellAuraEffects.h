@@ -94,7 +94,6 @@ class AuraEffect
         void HandleShapeshiftBoosts(Unit* target, bool apply) const;
     private:
         Aura* const m_base;
-
         SpellInfo const* const m_spellInfo;
         int32 const m_baseAmount;
 

@@ -3032,31 +3032,31 @@ enum LockKeyType
     LOCK_KEY_SKILL = 2
 };
 
-enum LockType
+enum class LockType
 {
-    LOCKTYPE_PICKLOCK              = 1,
-    LOCKTYPE_HERBALISM             = 2,
-    LOCKTYPE_MINING                = 3,
-    LOCKTYPE_DISARM_TRAP           = 4,
-    LOCKTYPE_OPEN                  = 5,
-    LOCKTYPE_TREASURE              = 6,
-    LOCKTYPE_CALCIFIED_ELVEN_GEMS  = 7,
-    LOCKTYPE_CLOSE                 = 8,
-    LOCKTYPE_ARM_TRAP              = 9,
-    LOCKTYPE_QUICK_OPEN            = 10,
-    LOCKTYPE_QUICK_CLOSE           = 11,
-    LOCKTYPE_OPEN_TINKERING        = 12,
-    LOCKTYPE_OPEN_KNEELING         = 13,
-    LOCKTYPE_OPEN_ATTACKING        = 14,
-    LOCKTYPE_GAHZRIDIAN            = 15,
-    LOCKTYPE_BLASTING              = 16,
-    LOCKTYPE_PVP_OPEN              = 17,
-    LOCKTYPE_PVP_CLOSE             = 18,
-    LOCKTYPE_FISHING               = 19,
-    LOCKTYPE_INSCRIPTION           = 20,
-    LOCKTYPE_OPEN_FROM_VEHICLE     = 21,
-    LOCKTYPE_ARCHAEOLOGY           = 22,
-    LOCKTYPE_PVP_QUICK_OPEN        = 23
+    PICKLOCK              = 1,
+    HERBALISM             = 2,
+    MINING                = 3,
+    DISARM_TRAP           = 4,
+    OPEN                  = 5,
+    TREASURE              = 6,
+    CALCIFIED_ELVEN_GEMS  = 7,
+    CLOSE                 = 8,
+    ARM_TRAP              = 9,
+    QUICK_OPEN            = 10,
+    QUICK_CLOSE           = 11,
+    OPEN_TINKERING        = 12,
+    OPEN_KNEELING         = 13,
+    OPEN_ATTACKING        = 14,
+    GAHZRIDIAN            = 15,
+    BLASTING              = 16,
+    PVP_OPEN              = 17,
+    PVP_CLOSE             = 18,
+    FISHING               = 19,
+    INSCRIPTION           = 20,
+    OPEN_FROM_VEHICLE     = 21,
+    ARCHAEOLOGY           = 22,
+    PVP_QUICK_OPEN        = 23
 };
 
 enum TrainerType                                            // this is important type for npcs!
@@ -3547,11 +3547,11 @@ inline SkillType SkillByLockType(LockType locktype)
 {
     switch (locktype)
     {
-        case LOCKTYPE_HERBALISM:   return SKILL_HERBALISM;
-        case LOCKTYPE_MINING:      return SKILL_MINING;
-        case LOCKTYPE_FISHING:     return SKILL_FISHING;
-        case LOCKTYPE_INSCRIPTION: return SKILL_INSCRIPTION;
-        case LOCKTYPE_ARCHAEOLOGY: return SKILL_ARCHAEOLOGY;
+        case LockType::HERBALISM:   return SKILL_HERBALISM;
+        case LockType::MINING:      return SKILL_MINING;
+        case LockType::FISHING:     return SKILL_FISHING;
+        case LockType::INSCRIPTION: return SKILL_INSCRIPTION;
+        case LockType::ARCHAEOLOGY: return SKILL_ARCHAEOLOGY;
         default: break;
     }
     return SKILL_NONE;
@@ -3848,7 +3848,18 @@ enum SummonType
     SUMMON_TYPE_VEHICLE2    = 10,   // Oculus and Argent Tournament vehicles (3.3.5a)
     SUMMON_TYPE_LIGHTWELL   = 11,
     SUMMON_TYPE_JEEVES      = 12,
-    SUMMON_TYPE_UNK13       = 13
+    SUMMON_TYPE_UNK13       = 13,
+    SUMMON_TYPE_UNK14       = 14,
+    SUMMON_TYPE_UNK15       = 15,
+    SUMMON_TYPE_STATUE      = 16,
+    SUMMON_TYPE_UNK17       = 17,
+    SUMMON_TYPE_UNK18       = 18,
+    SUMMON_TYPE_UNK19       = 19,
+    SUMMON_TYPE_UNK20       = 20,
+    SUMMON_TYPE_UNK21       = 21,
+    SUMMON_TYPE_UNK22       = 22,
+    //SUMMON_TYPE_UNK23       = 23, // does not exist in 5.4.8
+    SUMMON_TYPE_UNK24       = 24,
 };
 
 enum EventId
@@ -4025,7 +4036,7 @@ enum class BattlegroundTypeId
     // 441 = "Icecrown Citadel"
     // 443 = "The Ruby Sanctum"
     // 656 = "Rated Eye of the Storm"
-    BATTLEGROUND_TOK           = 699, // 5.x Temple of Kotmogu
+    BATTLEGROUND_VOP           = 699, // Valley of Power 
     BATTLEGROUND_CTF           = 706, // 5.x CTF3
     BATTLEGROUND_SM            = 708, // 5.x Silvershard Mines
     BATTLEGROUND_TV            = 719, // 5.x Tol'Vir Arena
@@ -4177,10 +4188,11 @@ enum BattlegroundQueueTypeId
     BATTLEGROUND_QUEUE_IC       = 6,
     BATTLEGROUND_QUEUE_TP       = 7,
     BATTLEGROUND_QUEUE_BFG      = 8,
-    BATTLEGROUND_QUEUE_RB       = 9,
-    BATTLEGROUND_QUEUE_2v2      = 10,
-    BATTLEGROUND_QUEUE_3v3      = 11,
-    BATTLEGROUND_QUEUE_5v5      = 12,
+    BATTLEGROUND_QUEUE_VOP      = 9,
+    BATTLEGROUND_QUEUE_RB       = 10,
+    BATTLEGROUND_QUEUE_2v2      = 11,
+    BATTLEGROUND_QUEUE_3v3      = 12,
+    BATTLEGROUND_QUEUE_5v5      = 13,
     MAX_BATTLEGROUND_QUEUE_TYPES
 };
 

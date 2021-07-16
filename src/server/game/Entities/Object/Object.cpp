@@ -73,18 +73,9 @@ TypeID GuidHigh2TypeId(uint32 guid_hi)
     return TypeID::NUM_CLIENT_OBJECT_TYPES;                         // unknown
 }
 
-Object::Object() : m_PackGUID(sizeof(uint64)+1)
+Object::Object() : m_PackGUID(sizeof(uint64)+1), m_objectTypeId(TypeID::TYPEID_OBJECT), m_objectType(TYPEMASK_OBJECT), m_uint32Values(NULL),
+                    m_valuesCount(0), m_fieldNotifyFlags(UF_FLAG_URGENT), m_inWorld(false), m_objectUpdated(false)
 {
-    m_objectTypeId      = TypeID::TYPEID_OBJECT;
-    m_objectType        = TYPEMASK_OBJECT;
-
-    m_uint32Values      = NULL;
-    m_valuesCount       = 0;
-    _fieldNotifyFlags   = UF_FLAG_URGENT;
-
-    m_inWorld           = false;
-    m_objectUpdated     = false;
-
     m_PackGUID.appendPackGUID(0);
 }
 
@@ -815,7 +806,7 @@ void Object::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* targe
 
     for (uint16 index = 0; index < m_valuesCount; ++index)
     {
-        if ((_fieldNotifyFlags & flags[index] ||
+        if ((m_fieldNotifyFlags & flags[index] ||
              ((updateType == UPDATETYPE_VALUES ? _changesMask.GetBit(index) : m_uint32Values[index]) && (flags[index] & visibleFlag))))
         {
             updateMask.SetBit(index);
@@ -2552,6 +2543,7 @@ TempSummon* Map::SummonCreature(uint32 entry, Position const& pos, SummonPropert
                 case SUMMON_TYPE_GUARDIAN2:
                     mask = UNIT_MASK_GUARDIAN;
                     break;
+                case SUMMON_TYPE_STATUE:
                 case SUMMON_TYPE_TOTEM:
                 case SUMMON_TYPE_LIGHTWELL:
                     mask = UNIT_MASK_TOTEM;
@@ -3384,7 +3376,7 @@ bool WorldObject::InSamePhase(WorldObject const* obj) const
     return IsPhased(obj);
 }
 
-void WorldObject::PlayDistanceSound(uint32 sound_id, Player* target /*= NULL*/)
+void WorldObject::PlayDistanceSound(uint32 sound_id, Player* target)
 {
     ObjectGuid TargetGUID = target->GetGUID();
     ObjectGuid SourceGUID = GetGUID();
@@ -3406,11 +3398,7 @@ void WorldObject::PlayDistanceSound(uint32 sound_id, Player* target /*= NULL*/)
     data.WriteGuidBytes(TargetGUID, 4);
     data.WriteGuidBytes(SourceGUID, 4, 7, 0, 6);
     data.WriteGuidBytes(TargetGUID, 0);
-
-    if (target)
-        target->SendDirectMessage(&data);
-    else
-        SendMessageToSet(&data, true);
+    target->SendDirectMessage(&data);
 }
 
 void WorldObject::PlayDirectSound(uint32 sound_id, Player* target /*= NULL*/)

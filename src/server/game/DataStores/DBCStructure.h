@@ -2551,7 +2551,7 @@ struct SpellLevelsEntry
 struct SpellPowerEntry
 {
     //uint32    Id;                                         // 0        m_ID
-    //uint32    spellId;                                    // 1  - Pandaria
+    uint32    spellId;                                    // 1  - Pandaria
     //uint32    RaidDifficulty;                             // 2  - Pandaria RaidDifficultyID
     uint32    powerType;                                    // 3       m_powerType
     uint32    manaCost;                                     // 4       m_manaCost
@@ -2560,7 +2560,7 @@ struct SpellPowerEntry
     uint32    manaPerSecondPerLevel;                        // 7       m_manaPerSecondPerLevel
     //uint32    PowerDisplayId;                             // 8       m_powerDisplayID - id from PowerDisplay.dbc, new in 3.1
     float     ManaCostPercentageFloat;                      // 9       4.3.0
-    //float     ChannelCostPercentageFloat;                 // 10 - Pandaria - ChannelCostPercentageFloat
+    float     ChannelCostPercentageFloat;                   // 10 - Pandaria - ChannelCostPercentageFloat
     uint32     ShapeShiftSpellID;                           // 11 - Pandaria - ShapeShiftSpellID
     //float     HealthCostPercentageFloat;                  // 12 - Pandaria - HealthCostPercentageFloat
 };

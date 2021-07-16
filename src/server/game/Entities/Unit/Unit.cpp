@@ -592,6 +592,7 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel) cons
 
     return (HasBreakableByDamageAuraType(SPELL_AURA_MOD_CONFUSE, excludeAura)
             || HasBreakableByDamageAuraType(SPELL_AURA_MOD_FEAR, excludeAura)
+            || HasBreakableByDamageAuraType(SPELL_AURA_MOD_FEAR_2, excludeAura)
             || HasBreakableByDamageAuraType(SPELL_AURA_MOD_STUN, excludeAura)
             || HasBreakableByDamageAuraType(SPELL_AURA_MOD_ROOT, excludeAura)
             || HasBreakableByDamageAuraType(SPELL_AURA_TRANSFORM, excludeAura));
@@ -2240,7 +2241,7 @@ void Unit::SendMeleeAttackStop(Unit* victim)
 
     ObjectGuid attackerGuid = GetGUID();
     ObjectGuid victimGuid = victim ? victim->GetGUID() : 0;
-
+    
     data.WriteBit(victimGuid [5]);
     data.WriteBit(victimGuid [6]);
     data.WriteBit(attackerGuid [3]);
@@ -4945,7 +4946,6 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo)
 
     //PeriodicAuraLogEffect
     {
-        
         data.WriteBit(!pInfo->overDamage); // 8
         data.WriteBit(!pInfo->absorb); // 16
         data.WriteBit(pInfo->critical); // 24
@@ -4987,7 +4987,6 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo)
         //if12
         if (pInfo->power)
             data << uint32(pInfo->power);
-
     }
 
     data.WriteGuidBytes(CasterGUID, 5, 3);
@@ -5018,7 +5017,6 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo)
     data.WriteGuidBytes(TargetGUID, 0, 2);
     data.WriteGuidBytes(CasterGUID, 6); 
     SendMessageToSet(&data, true);
-
 }
 
 void Unit::SendSpellMiss(Unit* target, uint32 spellID, SpellMissInfo missInfo)
@@ -5081,7 +5079,7 @@ void Unit::SendSpellDamageImmune(Unit* target, uint32 spellId)
 
 void Unit::SendAttackStateUpdate(CalcDamageInfo* damageInfo)
 {
-    SF_LOG_ERROR("entities.unit", "WORLD: Sending SMSG_ATTACKER_STATE_UPDATE");
+    SF_LOG_DEBUG("entities.unit", "WORLD: Sending SMSG_ATTACKER_STATE_UPDATE");
     uint32 count = 1;
 
     ByteBuffer buff;
@@ -5880,6 +5878,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     break;
                 }
                 // Healing Touch (Dreamwalker Raiment set)
+                /*
                 case 28719:
                 {
                     // mana back
@@ -5887,7 +5886,7 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     triggered_spell_id = 28742;
                     break;
-                }
+                }*/
                 // Mana Restore (Malorne Raiment set / Malorne Regalia set)
                 case 37288:
                 case 37295:
@@ -7188,7 +7187,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         // Enlightenment (trigger only from mana cost spells)
         case 35095:
         {
-            if (!procSpell || procSpell->PowerType != POWER_MANA || (procSpell->ManaCost == 0 && procSpell->ManaCostPercentage == 0 && procSpell->ManaCostPerlevel == 0))
+            if (!procSpell /*|| procSpell->PowerType != POWER_MANA || (procSpell->ManaCost == 0 && procSpell->ManaCostPercentage == 0 && procSpell->ManaCostPerlevel == 0)*/)
                 return false;
             break;
         }
@@ -7269,6 +7268,32 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 return false;
             if (!(procSpell->SpellIconID == 17))
                 return false;
+            break;
+        }
+        case 12880: // Enrage
+        {
+            if (!(procSpell->SpellFamilyName == SPELLFAMILY_WARRIOR))
+                return false;
+
+            // check if we're doing a critical hit
+            if (procEx != PROC_EX_CRITICAL_HIT)
+                return false;
+
+            if (!(procSpell->SpellFamilyFlags[0] & 0x20000000 ||
+                procSpell->SpellFamilyFlags[1] & 0x00000400 ||
+                procSpell->SpellFamilyFlags[1] & 0x40000000 ||
+                procSpell->SpellFamilyFlags[1] & 0x00000040 ||
+                procSpell->SpellFamilyFlags[1] & 0x00000200))
+                return false;
+
+            if (!(procSpell->SpellIconID == 564 ||
+                procSpell->SpellIconID == 38 ||
+                procSpell->SpellIconID == 5288 ||
+                procSpell->SpellIconID == 1508 ||
+                procSpell->SpellIconID == 413))
+                return false;
+
+            CastSpell(this, 131116, true);
             break;
         }
     }
@@ -9035,9 +9060,8 @@ bool Unit::isSpellCrit(Unit* victim, SpellInfo const* spellProto, SpellSchoolMas
                     {
                         // Shatter // 5.4.8
                         case 911:
-                            if (!victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
-                                break;
-                            AddPct(crit_chance, (*i)->GetAmount() * 20);
+                            if (victim->HasAuraState(AURA_STATE_FROZEN, spellProto, this))
+                                ApplyPct(crit_chance, (*i)->GetAmount() * 25);
                             break;
                         default:
                             break;
@@ -9825,7 +9849,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackT
                 {
                     if (GetTypeId() != TypeID::TYPEID_PLAYER)
                         continue;
-                    float mod = ToPlayer()->GetRatingBonusValue(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN) * (-8.0f);
+                    float mod = ToPlayer()->GetRatingBonusValue(CombatRating::CR_RESILIENCE_PLAYER_DAMAGE_TAKEN) * (-8.0f);
                     AddPct(TakenTotalMod, std::max(mod, float((*i)->GetAmount())));
                 }
                 break;
@@ -11899,8 +11923,8 @@ uint32 Unit::GetPowerIndex(uint32 powerType) const
     /// POWER_RAGE, so we enforce the class to hunter so that they
     /// effectively get focus power.
     uint32 classId = getClass();
-    if (ToPet() && ToPet()->getPetType() == HUNTER_PET)
-        classId = CLASS_HUNTER;
+    //if (ToPet() && ToPet()->getPetType() == HUNTER_PET)
+    //    classId = CLASS_HUNTER;
 
     return GetPowerIndexByClass(powerType, classId);
 }
@@ -11937,6 +11961,8 @@ int32 Unit::GetCreatePowers(Powers power) const
             return 4;
         case POWER_DEMONIC_FURY:
             return 1000;
+        case POWER_BURNING_EMBERS:
+            return 40;
         default:
             break;
     }
@@ -12370,6 +12396,7 @@ bool InitTriggerAuraData()
     isTriggerAura [SPELL_AURA_MOD_RESISTANCE] = true;
     isTriggerAura [SPELL_AURA_MOD_STEALTH] = true;
     isTriggerAura [SPELL_AURA_MOD_FEAR] = true; // Aura does not have charges but needs to be removed on trigger
+    isTriggerAura [SPELL_AURA_MOD_FEAR_2] = true;
     isTriggerAura [SPELL_AURA_MOD_ROOT] = true;
     isTriggerAura [SPELL_AURA_TRANSFORM] = true;
     isTriggerAura [SPELL_AURA_REFLECT_SPELLS] = true;
@@ -12405,6 +12432,7 @@ bool InitTriggerAuraData()
 
     isAlwaysTriggeredAura [SPELL_AURA_OVERRIDE_CLASS_SCRIPTS] = true;
     isAlwaysTriggeredAura [SPELL_AURA_MOD_FEAR] = true;
+    isAlwaysTriggeredAura [SPELL_AURA_MOD_FEAR_2] = true;
     isAlwaysTriggeredAura [SPELL_AURA_MOD_ROOT] = true;
     isAlwaysTriggeredAura [SPELL_AURA_MOD_STUN] = true;
     isAlwaysTriggeredAura [SPELL_AURA_TRANSFORM] = true;
@@ -12507,6 +12535,23 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     ToPlayer()->AddComboPoints(target, 1);
                     StartReactiveTimer(REACTIVE_OVERPOWER);
                 }
+            }
+        }
+    }
+
+    if (getClass() == CLASS_WARLOCK)
+    {
+        float mult = 1.0f;
+        if (procSpell && procSpell->SpellFamilyName == SPELLFAMILY_WARLOCK)
+        {
+            if (procExtra & PROC_EX_CRITICAL_HIT)
+                mult = 2.0f;
+            
+            if ((procSpell->SpellIconID == 2128 && procSpell->SpellFamilyFlags[1] == 0x00000040) ||
+                (procSpell->SpellIconID == 12 && procSpell->SpellFamilyFlags[1] == 0x00800000) ||
+                (procSpell->SpellIconID == 31 && procSpell->SpellFamilyFlags[0] == 0x00000004))
+            {
+                SetPower(POWER_BURNING_EMBERS, GetPower(POWER_BURNING_EMBERS) + (mult * 2));
             }
         }
     }
@@ -12735,7 +12780,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     case SPELL_AURA_MOD_POWER_COST_SCHOOL:
                         // Skip melee hits and spells ws wrong school or zero cost
                         if (procSpell &&
-                            (procSpell->ManaCost != 0 || procSpell->ManaCostPercentage != 0) && // Cost check
+                            //(procSpell->ManaCost != 0 || procSpell->ManaCostPercentage != 0) && // Cost check
                             (triggeredByAura->GetMiscValue() & procSpell->SchoolMask))          // School check
                             takeCharges = true;
                         break;
@@ -12758,6 +12803,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                         // Are there any more auras which need this?
                     case SPELL_AURA_MOD_CONFUSE:
                     case SPELL_AURA_MOD_FEAR:
+                    case SPELL_AURA_MOD_FEAR_2:
                     case SPELL_AURA_MOD_STUN:
                     case SPELL_AURA_MOD_ROOT:
                     case SPELL_AURA_TRANSFORM:
@@ -14116,7 +14162,7 @@ void Unit::SetControlled(bool apply, UnitState state)
                 SetConfused(false);
                 break;
             case UNIT_STATE_FLEEING:
-                if (HasAuraType(SPELL_AURA_MOD_FEAR))
+                if (HasAuraType(SPELL_AURA_MOD_FEAR) || HasAuraType(SPELL_AURA_MOD_FEAR_2))
                     return;
 
                 SetFeared(false);
@@ -14205,10 +14251,21 @@ void Unit::SetFeared(bool apply)
         Unit* caster = NULL;
         Unit::AuraEffectList const& fearAuras = GetAuraEffectsByType(SPELL_AURA_MOD_FEAR);
         if (!fearAuras.empty())
+        {
             caster = ObjectAccessor::GetUnit(*this, fearAuras.front()->GetCasterGUID());
-        if (!caster)
-            caster = getAttackerForHelper();
-        GetMotionMaster()->MoveFleeing(caster, fearAuras.empty() ? sWorld->getIntConfig(WorldIntConfigs::CONFIG_CREATURE_FAMILY_FLEE_DELAY) : 0);             // caster == NULL processed in MoveFleeing
+            if (!caster)
+                caster = getAttackerForHelper();
+            GetMotionMaster()->MoveFleeing(caster, fearAuras.empty() ? sWorld->getIntConfig(WorldIntConfigs::CONFIG_CREATURE_FAMILY_FLEE_DELAY) : 0);             // caster == NULL processed in MoveFleeing
+        }
+
+        Unit::AuraEffectList const& fearAuras2 = GetAuraEffectsByType(SPELL_AURA_MOD_FEAR_2);
+        if (!fearAuras2.empty())
+        {
+            caster = ObjectAccessor::GetUnit(*this, fearAuras2.front()->GetCasterGUID());
+            if (!caster)
+                caster = getAttackerForHelper();
+            GetMotionMaster()->MoveFleeing(caster, fearAuras2.empty() ? sWorld->getIntConfig(WorldIntConfigs::CONFIG_CREATURE_FAMILY_FLEE_DELAY) : 0);             // caster == NULL processed in MoveFleeing
+        }
     }
     else
     {
@@ -15459,6 +15516,14 @@ uint32 Unit::GetModelForTotem(uint32 totemType) const
 
     if (totemType == 3400)
         totemType = SUMMON_TYPE_TOTEM_EARTH;
+
+    // jade serpent statue
+    if (totemType == SUMMON_TYPE_STATUE_JADE)
+        return 42449;
+
+    // black ox statue
+    if (totemType == SUMMON_TYPE_STATUE_OX)
+        return 41853;
 
     switch (getRace())
     {
@@ -16881,7 +16946,7 @@ void Unit::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* target)
     Creature const* creature = ToCreature();
     for (uint16 index = 0; index < valCount; ++index)
     {
-        if ((_fieldNotifyFlags & flags [index] ||
+        if ((m_fieldNotifyFlags & flags [index] ||
             ((flags [index] & visibleFlag) & UF_FLAG_SPECIAL_INFO) ||
             ((updateType == UPDATETYPE_VALUES ? _changesMask.GetBit(index) : m_uint32Values [index]) && (flags [index] & visibleFlag)) ||
             (index == UNIT_FIELD_AURA_STATE && HasFlag(UNIT_FIELD_AURA_STATE, PER_CASTER_AURA_STATE_MASK))))

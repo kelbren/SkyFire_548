@@ -1027,15 +1027,6 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry, SpellEffectEntry const** effe
     BaseLevel = _levels ? _levels->baseLevel : 0;
     SpellLevel = _levels ? _levels->spellLevel : 0;
 
-    // SpellPowerEntry
-    SpellPowerEntry const* _power = GetSpellPower();
-    ManaCost = _power ? _power->manaCost : 0;
-    ManaCostPerlevel = _power ? _power->manaCostPerlevel : 0;
-    ManaCostPercentage = _power ? _power->ManaCostPercentageFloat : 0;
-    ManaPerSecond = _power ? _power->manaPerSecond : 0;
-    ShapeShiftReqID = _power ? _power->ShapeShiftSpellID : 0;
-    PowerType = _power ? _power->powerType : 0;
-
     // SpellReagentsEntry
     SpellReagentsEntry const* _reagents = GetSpellReagents();
     for (uint8 i = 0; i < MAX_SPELL_REAGENTS; ++i)
@@ -1299,8 +1290,8 @@ bool SpellInfo::IsStackableWithRanks() const
 {
     if (IsPassive())
         return false;
-    if (PowerType != POWER_MANA && PowerType != POWER_HEALTH)
-        return false;
+    //if (m_powerType != POWER_MANA && PowerType != POWER_HEALTH)
+    //    return false;
     if (IsProfessionOrRiding())
         return false;
 
@@ -1899,6 +1890,17 @@ SpellCastResult SpellInfo::CheckExplicitTarget(Unit const* caster, WorldObject c
         return SPELL_CAST_OK;
     }
 
+    if (GameObject const* gameobjectTarget = target->ToGameObject())
+    {
+        if (neededTargets & (TARGET_FLAG_GAMEOBJECT))
+        {
+            if (caster->GetDistance(target) > (GetMaxRange()))
+                return SPELL_FAILED_OUT_OF_RANGE;
+
+            return SPELL_CAST_OK;
+        }
+    }
+
     if (Unit const* unitTarget = target->ToUnit())
     {
         if (neededTargets & (TARGET_FLAG_UNIT_ENEMY | TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT_RAID | TARGET_FLAG_UNIT_PARTY | TARGET_FLAG_UNIT_MINIPET | TARGET_FLAG_UNIT_PASSENGER))
@@ -2391,7 +2393,7 @@ uint32 SpellInfo::GetRecoveryTime() const
 {
     return RecoveryTime > CategoryRecoveryTime ? RecoveryTime : CategoryRecoveryTime;
 }
-
+/*
 int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const
 {
     // Spell drain all exist power on cast (Only paladin lay of Hands)
@@ -2454,7 +2456,7 @@ int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) c
 
     return powerCost;
 }
-
+*/
 bool SpellInfo::IsRanked() const
 {
     return ChainEntry != NULL;
@@ -2840,11 +2842,6 @@ SpellInterruptsEntry const* SpellInfo::GetSpellInterrupts() const
 SpellLevelsEntry const* SpellInfo::GetSpellLevels() const
 {
     return SpellLevelsId ? sSpellLevelsStore.LookupEntry(SpellLevelsId) : NULL;
-}
-
-SpellPowerEntry const* SpellInfo::GetSpellPower() const
-{
-    return sSpellPowerStore.LookupEntry(Id);
 }
 
 SpellReagentsEntry const* SpellInfo::GetSpellReagents() const

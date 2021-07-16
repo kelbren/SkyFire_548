@@ -352,12 +352,6 @@ public:
     uint32 BaseLevel;
     uint32 SpellLevel;
     SpellDurationEntry const* DurationEntry;
-    int32 PowerType;
-    uint32 ManaCost;
-    uint32 ManaCostPerlevel;
-    uint32 ManaPerSecond;
-    float ManaCostPercentage;
-    uint32 ShapeShiftReqID;
     uint32 RuneCostID;
     SpellRangeEntry const* RangeEntry;
     float  Speed;
@@ -426,7 +420,6 @@ public:
     SpellEquippedItemsEntry const* GetSpellEquippedItems() const;
     SpellInterruptsEntry const* GetSpellInterrupts() const;
     SpellLevelsEntry const* GetSpellLevels() const;
-    SpellPowerEntry const* GetSpellPower() const;
     SpellReagentsEntry const* GetSpellReagents() const;
     SpellScalingEntry const* GetSpellScaling() const;
     SpellShapeshiftEntry const* GetSpellShapeshift() const;
@@ -515,7 +508,7 @@ public:
     uint32 CalcCastTime(uint8 level = 0, Spell* spell = NULL) const;
     uint32 GetRecoveryTime() const;
 
-    int32 CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
+    //int32 CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask) const;
 
     bool IsRanked() const;
     uint8 GetRank() const;

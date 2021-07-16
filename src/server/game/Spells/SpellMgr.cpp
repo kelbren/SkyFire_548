@@ -3532,9 +3532,9 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 40167: // Introspection
                 spellInfo->Attributes |= SPELL_ATTR0_NEGATIVE_1;
                 break;
-            case 2378: // Minor Fortitude
-                spellInfo->ManaCost = 0;
-                spellInfo->ManaPerSecond = 0;
+            //case 2378: // Minor Fortitude
+                //spellInfo->ManaCost = 0;
+                //spellInfo->ManaPerSecond = 0;
                 break;
             // Halls Of Origination spells
             // Temple Guardian Anhuur
@@ -3585,6 +3585,8 @@ void SpellMgr::LoadSpellInfoCorrections()
         properties->Type = SUMMON_TYPE_TOTEM;
     if (SummonPropertiesEntry* properties = const_cast<SummonPropertiesEntry*>(sSummonPropertiesStore.LookupEntry(647))) // 52893
         properties->Type = SUMMON_TYPE_TOTEM;
+    if (SummonPropertiesEntry* properties = const_cast<SummonPropertiesEntry*>(sSummonPropertiesStore.LookupEntry(3216))) // 52893
+        properties->Slot = 1;
 
     SF_LOG_INFO("server.loading", ">> Loaded SpellInfo corrections in %u ms", GetMSTimeDiffToNow(oldMSTime));
 }

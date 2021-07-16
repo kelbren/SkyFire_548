@@ -215,7 +215,7 @@ public:
                 spellMod->mask = GetSpellInfo()->Effects[aurEff->GetEffIndex()].SpellClassMask;
             }
 
-            spellMod->value = -aurEff->GetAmount();
+            spellMod->value = -(float)aurEff->GetAmount();
         }
 
         void Register() OVERRIDE
@@ -251,7 +251,7 @@ public:
                 spellMod->mask = GetSpellInfo()->Effects[aurEff->GetEffIndex()].SpellClassMask;
             }
 
-            spellMod->value = aurEff->GetAmount();
+            spellMod->value = (float)aurEff->GetAmount();
         }
 
         void Register() OVERRIDE
@@ -755,10 +755,10 @@ public:
         void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
         {
             PreventDefaultAction();
-            int32 focus = eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), SpellSchoolMask(eventInfo.GetDamageInfo()->GetSchoolMask()));
-            focus = CalculatePct(focus, aurEff->GetAmount());
+            //int32 focus = eventInfo.GetDamageInfo()->GetSpellInfo()->CalcPowerCost(GetTarget(), SpellSchoolMask(eventInfo.GetDamageInfo()->GetSchoolMask()));
+            //focus = CalculatePct(focus, aurEff->GetAmount());
 
-            GetTarget()->CastCustomSpell(GetTarget(), SPELL_HUNTER_THRILL_OF_THE_HUNT, &focus, NULL, NULL, true, NULL, aurEff);
+            //GetTarget()->CastCustomSpell(GetTarget(), SPELL_HUNTER_THRILL_OF_THE_HUNT, &focus, NULL, NULL, true, NULL, aurEff);
         }
 
         void Register() OVERRIDE
